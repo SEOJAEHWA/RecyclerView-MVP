@@ -57,7 +57,19 @@ public class MainActivity extends AppCompatActivity implements RepoListContract.
 //            mRecyclerView.getItemAnimator().setAddDuration(500);
 //            mRecyclerView.getItemAnimator().setRemoveDuration(500);
 //        }
+
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(view ->
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show());
+
+        RepoRepository repository = RepoRepository.getInstance(RepoDataSource.INSTANCE);
+        mPresenter = new RepoListPresenter(this, repository);
+
         mAdapter = new RepoListAdapter();
+        mPresenter.setAdapterView(mAdapter);
+        mPresenter.setAdapterModel(mAdapter);
+
         mRecyclerView.setAdapter(mAdapter);
         RecyclerView.LayoutManager layoutManager = mRecyclerView.getLayoutManager();
         if (layoutManager instanceof LinearLayoutManager) {
@@ -75,15 +87,7 @@ public class MainActivity extends AppCompatActivity implements RepoListContract.
             });
         }
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view ->
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show());
-
-        RepoRepository repository = RepoRepository.getInstance(RepoDataSource.INSTANCE);
-        mPresenter = new RepoListPresenter(this, repository);
-        mPresenter.setAdapterView(mAdapter);
-        mPresenter.setAdapterModel(mAdapter);
+        // Request Repo data for initializing!
         mPresenter.searchRepo("Android");
     }
 
