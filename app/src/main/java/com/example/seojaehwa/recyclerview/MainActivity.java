@@ -3,7 +3,6 @@ package com.example.seojaehwa.recyclerview;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 import com.example.seojaehwa.recyclerview.adapter.RepoListAdapter;
 import com.example.seojaehwa.recyclerview.data.repository.RepoDataSource;
@@ -16,10 +15,12 @@ import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.Logger;
 import com.orhanobut.logger.PrettyFormatStrategy;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class MainActivity extends AppCompatActivity implements RepoListContract.View {
@@ -51,17 +52,33 @@ public class MainActivity extends AppCompatActivity implements RepoListContract.
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this,
                 DividerItemDecoration.VERTICAL));
+//        mRecyclerView.setItemAnimator(new SlideInUpAnimator(new AccelerateDecelerateInterpolator()));
+//        if (mRecyclerView.getItemAnimator() != null) {
+//            mRecyclerView.getItemAnimator().setAddDuration(500);
+//            mRecyclerView.getItemAnimator().setRemoveDuration(500);
+//        }
         mAdapter = new RepoListAdapter();
         mRecyclerView.setAdapter(mAdapter);
+        RecyclerView.LayoutManager layoutManager = mRecyclerView.getLayoutManager();
+        if (layoutManager instanceof LinearLayoutManager) {
+            final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) layoutManager;
+            mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    int visibleItemCount = linearLayoutManager.getChildCount();
+                    int lastVisibleItemPosition = linearLayoutManager.findLastVisibleItemPosition();
+                    int totalItemCount = linearLayoutManager.getItemCount();
+                    mPresenter.searchRepoMore(visibleItemCount, lastVisibleItemPosition,
+                            totalItemCount);
+                }
+            });
+        }
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        fab.setOnClickListener(view ->
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+                        .setAction("Action", null).show());
 
         RepoRepository repository = RepoRepository.getInstance(RepoDataSource.INSTANCE);
         mPresenter = new RepoListPresenter(this, repository);

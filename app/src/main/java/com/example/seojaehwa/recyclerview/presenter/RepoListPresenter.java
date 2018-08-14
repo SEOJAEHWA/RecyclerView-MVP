@@ -13,6 +13,8 @@ import androidx.annotation.Nullable;
 
 public class RepoListPresenter implements RepoListContract.Presenter {
 
+    private static final int VISIBLE_THRESHOLD = 5;
+
     private RepoListContract.View mView;
     private RepoAdapterContract.View mAdapterView;
     private RepoAdapterContract.Model mAdapterModel;
@@ -29,15 +31,37 @@ public class RepoListPresenter implements RepoListContract.Presenter {
         mRepository.getRepos(queryString, new BaseDataSource.LoadData<List<Repo>>() {
             @Override
             public void onDataLoaded(List<Repo> data) {
-                Logger.d("data size: " + data.size());
                 mAdapterModel.submitRepoList(data);
             }
 
             @Override
             public void onNetworkState(@Nullable NetworkState state) {
-                mAdapterView.setNetworkState(state);
+//                mAdapterView.setNetworkState(state);
             }
         });
+    }
+
+    @Override
+    public void searchRepoMore(int visibleItemCount, int lastVisibleItemPosition, int totalItemCount) {
+        if (totalItemCount > 0
+                && visibleItemCount + lastVisibleItemPosition + VISIBLE_THRESHOLD >= totalItemCount) {
+            Logger.i("searchRepoMore: " + visibleItemCount
+                    + " + " + lastVisibleItemPosition
+                    + " + " + VISIBLE_THRESHOLD
+                    + " : " + totalItemCount);
+
+            mRepository.getMoreRepos(new BaseDataSource.LoadData<List<Repo>>() {
+                @Override
+                public void onDataLoaded(List<Repo> data) {
+                    mAdapterModel.submitRepoList(data);
+                }
+
+                @Override
+                public void onNetworkState(@Nullable NetworkState state) {
+                    mAdapterView.setNetworkState(state);
+                }
+            });
+        }
     }
 
     @Override

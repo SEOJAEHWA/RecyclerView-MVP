@@ -31,7 +31,7 @@ public interface GithubService {
                     .addConverterFactory(GsonConverterFactory.create())
                     .client(new OkHttpClient.Builder()
                             .addInterceptor(new HttpLoggingInterceptor()
-                                    .setLevel(HttpLoggingInterceptor.Level.BODY))
+                                    .setLevel(HttpLoggingInterceptor.Level.BASIC))
                             .build()
                     )
                     .build()

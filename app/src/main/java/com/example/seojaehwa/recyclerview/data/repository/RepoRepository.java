@@ -3,7 +3,9 @@ package com.example.seojaehwa.recyclerview.data.repository;
 import com.example.seojaehwa.recyclerview.api.GithubService;
 import com.example.seojaehwa.recyclerview.api.NetworkState;
 import com.example.seojaehwa.recyclerview.data.Repo;
+import com.orhanobut.logger.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -19,7 +21,12 @@ public class RepoRepository {
     private IRepoDataSource mDataSource;
 
     private boolean isRequestInProgress = false;
+
     private int mLastRequestedPage = 1;
+
+    private String mCurrentQueryString;
+
+    private List<Repo> mCachedDataList;
 
     public static RepoRepository getInstance(IRepoDataSource dataSource) {
         if (INSTANCE == null) {
@@ -30,6 +37,7 @@ public class RepoRepository {
 
     private RepoRepository(IRepoDataSource dataSource) {
         this.mDataSource = dataSource;
+        this.mCachedDataList = new ArrayList<>();
     }
 
     private GithubService getApi() {
@@ -38,18 +46,43 @@ public class RepoRepository {
 
     public void getRepos(String queryString,
                          @NonNull BaseDataSource.LoadData<List<Repo>> callback) {
+        mCurrentQueryString = queryString;
         mLastRequestedPage = 1;
-        requestRepoData(queryString, callback);
+        requestRepoData(mCurrentQueryString, new BaseDataSource.LoadData<List<Repo>>() {
+            @Override
+            public void onDataLoaded(List<Repo> data) {
+                mCachedDataList.clear();
+                mCachedDataList.addAll(data);
+                callback.onDataLoaded(mCachedDataList);
+            }
+
+            @Override
+            public void onNetworkState(@Nullable NetworkState state) {
+                callback.onNetworkState(state);
+            }
+        });
     }
 
-    public void getMoreRepos(String queryString,
-                             @NonNull BaseDataSource.LoadData<List<Repo>> callback) {
-        requestRepoData(queryString, callback);
+    public void getMoreRepos(@NonNull BaseDataSource.LoadData<List<Repo>> callback) {
+        requestRepoData(mCurrentQueryString, new BaseDataSource.LoadData<List<Repo>>() {
+            @Override
+            public void onDataLoaded(List<Repo> data) {
+                mCachedDataList.addAll(data);
+                callback.onDataLoaded(mCachedDataList);
+            }
+
+            @Override
+            public void onNetworkState(@Nullable NetworkState state) {
+                callback.onNetworkState(state);
+            }
+        });
     }
 
     private void requestRepoData(String queryString,
                                  @NonNull final BaseDataSource.LoadData<List<Repo>> callback) {
+        Logger.d("isRequestInProgress: " + isRequestInProgress);
         if (isRequestInProgress) {
+            Logger.e("Still in progress -------------------");
             return;
         }
         isRequestInProgress = true;
@@ -58,15 +91,18 @@ public class RepoRepository {
                 new BaseDataSource.LoadData<List<Repo>>() {
                     @Override
                     public void onDataLoaded(List<Repo> data) {
+                        isRequestInProgress = false;
                         mLastRequestedPage++;
                         callback.onDataLoaded(data);
-                        isRequestInProgress = false;
                     }
 
                     @Override
                     public void onNetworkState(@Nullable NetworkState state) {
-                        callback.onNetworkState(state);
+                        if (state == NetworkState.LOADING) {
+                            return;
+                        }
                         isRequestInProgress = false;
+                        callback.onNetworkState(state);
                     }
                 });
     }

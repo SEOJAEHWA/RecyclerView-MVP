@@ -31,13 +31,13 @@ public class RepoDataSource implements IRepoDataSource {
             @Override
             public void onResponse(@NonNull Call<RepoSearchResponse> call,
                                    @NonNull Response<RepoSearchResponse> response) {
-                callback.onNetworkState(NetworkState.LOADED);
                 if (response.isSuccessful()) {
                     if (response.body() == null) {
                         callback.onNetworkState(NetworkState.error("Response Body is null!"));
                         return;
                     }
                     List<Repo> repoList = response.body().getItems();
+                    callback.onNetworkState(NetworkState.LOADED);
                     callback.onDataLoaded(repoList);
                 } else {
                     callback.onNetworkState(NetworkState.error(response.message()));

@@ -13,10 +13,12 @@ public interface RepoListContract {
 
     interface Presenter {
 
-        void searchRepo(String queryString);
-
         void setAdapterView(RepoAdapterContract.View view);
 
         void setAdapterModel(RepoAdapterContract.Model model);
+
+        void searchRepo(String queryString);
+
+        void searchRepoMore(int visibleItemCount, int lastVisibleItemPosition, int totalItemCount);
     }
 }
