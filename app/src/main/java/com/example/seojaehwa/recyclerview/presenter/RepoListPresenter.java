@@ -3,8 +3,8 @@ package com.example.seojaehwa.recyclerview.presenter;
 import com.example.seojaehwa.recyclerview.adapter.Presenter.RepoAdapterContract;
 import com.example.seojaehwa.recyclerview.api.NetworkState;
 import com.example.seojaehwa.recyclerview.data.Repo;
-import com.example.seojaehwa.recyclerview.data.repository.BaseDataSource;
 import com.example.seojaehwa.recyclerview.data.repository.RepoRepository;
+import com.example.seojaehwa.recyclerview.SimpleDataSource;
 import com.orhanobut.logger.Logger;
 
 import java.util.List;
@@ -28,15 +28,10 @@ public class RepoListPresenter implements RepoListContract.Presenter {
 
     @Override
     public void searchRepo(String queryString) {
-        mRepository.getRepos(queryString, new BaseDataSource.LoadData<List<Repo>>() {
+        mRepository.getRepos(queryString, new SimpleDataSource.LoadData<List<Repo>>() {
             @Override
             public void onDataLoaded(List<Repo> data) {
                 mAdapterModel.submitRepoList(data);
-            }
-
-            @Override
-            public void onNetworkState(@Nullable NetworkState state) {
-//                mAdapterView.setNetworkState(state);
             }
         });
     }
@@ -50,7 +45,7 @@ public class RepoListPresenter implements RepoListContract.Presenter {
                     + " + " + VISIBLE_THRESHOLD
                     + " : " + totalItemCount);
 
-            mRepository.getMoreRepos(new BaseDataSource.LoadData<List<Repo>>() {
+            mRepository.getMoreRepos(new SimpleDataSource.LoadData<List<Repo>>() {
                 @Override
                 public void onDataLoaded(List<Repo> data) {
                     mAdapterModel.submitRepoList(data);
@@ -58,10 +53,31 @@ public class RepoListPresenter implements RepoListContract.Presenter {
 
                 @Override
                 public void onNetworkState(@Nullable NetworkState state) {
+//                    mView.setNetworkState(state);
                     mAdapterView.setNetworkState(state);
                 }
             });
         }
+    }
+
+    @Override
+    public void removeRepo(int position) {
+        mRepository.removeRepo(position, new SimpleDataSource.LoadData<List<Repo>>() {
+            @Override
+            public void onDataLoaded(List<Repo> data) {
+                mAdapterModel.submitRepoList(data);
+            }
+        });
+    }
+
+    @Override
+    public void restoreRepo() {
+        mRepository.restoreRepo(new SimpleDataSource.LoadData<List<Repo>>() {
+            @Override
+            public void onDataLoaded(List<Repo> data) {
+                mAdapterModel.submitRepoList(data);
+            }
+        });
     }
 
     @Override

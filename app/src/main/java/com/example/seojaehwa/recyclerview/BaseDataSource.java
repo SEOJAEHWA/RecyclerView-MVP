@@ -1,4 +1,4 @@
-package com.example.seojaehwa.recyclerview.data.repository;
+package com.example.seojaehwa.recyclerview;
 
 
 import com.example.seojaehwa.recyclerview.api.NetworkState;

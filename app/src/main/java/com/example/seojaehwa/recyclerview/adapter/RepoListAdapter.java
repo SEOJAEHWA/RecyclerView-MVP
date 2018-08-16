@@ -10,8 +10,10 @@ import com.example.seojaehwa.recyclerview.api.NetworkState;
 import com.example.seojaehwa.recyclerview.data.Repo;
 import com.orhanobut.logger.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
@@ -25,6 +27,20 @@ public class RepoListAdapter extends ListAdapter<Repo, RecyclerView.ViewHolder>
 
     public RepoListAdapter() {
         super(DIFF);
+    }
+
+    private RecyclerView mCurrentRecyclerView;
+
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        mCurrentRecyclerView = recyclerView;
+    }
+
+    @Override
+    public void onDetachedFromRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onDetachedFromRecyclerView(recyclerView);
+        mCurrentRecyclerView = null;
     }
 
     @NonNull
@@ -77,21 +93,21 @@ public class RepoListAdapter extends ListAdapter<Repo, RecyclerView.ViewHolder>
     @Override
     public void setNetworkState(@Nullable NetworkState state) {
         Logger.w("[Adapter::setNetworkState] " + state);
-        NetworkState previousState = mNetworkState;
-        boolean hadProgressRow = hasProgressRow();
-        mNetworkState = state;
-        boolean hasProgressRow = hasProgressRow();
-        if (hadProgressRow != hasProgressRow) {
-            if (hadProgressRow) {
-                notifyItemRemoved(super.getItemCount());
-//                mCurrentRecyclerView.post(() -> notifyItemRemoved(super.getItemCount()));
-            } else {
-                notifyItemInserted(super.getItemCount());
-//                mCurrentRecyclerView.post(() -> notifyItemInserted(super.getItemCount()));
+        mCurrentRecyclerView.post(() -> {
+            NetworkState previousState = mNetworkState;
+            boolean hadProgressRow = hasProgressRow();
+            mNetworkState = state;
+            boolean hasProgressRow = hasProgressRow();
+            if (hadProgressRow != hasProgressRow) {
+                if (hadProgressRow) {
+                    notifyItemRemoved(RepoListAdapter.super.getItemCount());
+                } else {
+                    notifyItemInserted(RepoListAdapter.super.getItemCount());
+                }
+            } else if (hasProgressRow && (previousState != state)) {
+                notifyItemChanged(getItemCount() - 1);
             }
-        } else if (hasProgressRow && (previousState != state)) {
-            notifyItemChanged(getItemCount() - 1);
-        }
+        });
     }
 
     @Override

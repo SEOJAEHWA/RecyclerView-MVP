@@ -5,6 +5,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.seojaehwa.recyclerview.adapter.RepoListAdapter;
+import com.example.seojaehwa.recyclerview.api.NetworkState;
 import com.example.seojaehwa.recyclerview.data.repository.RepoDataSource;
 import com.example.seojaehwa.recyclerview.data.repository.RepoRepository;
 import com.example.seojaehwa.recyclerview.presenter.RepoListContract;
@@ -97,6 +98,11 @@ public class MainActivity extends AppCompatActivity implements RepoListContract.
     }
 
     @Override
+    public void setNetworkState(@Nullable NetworkState state) {
+
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
@@ -111,8 +117,15 @@ public class MainActivity extends AppCompatActivity implements RepoListContract.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id) {
+            case R.id.action_restore_item:
+                mPresenter.restoreRepo();
+                return true;
+            case R.id.action_remove_item:
+                mPresenter.removeRepo(1);
+                return true;
+            case R.id.action_settings:
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
