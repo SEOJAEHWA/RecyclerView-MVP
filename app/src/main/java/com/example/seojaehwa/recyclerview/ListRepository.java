@@ -3,10 +3,7 @@ package com.example.seojaehwa.recyclerview;
 import java.util.ArrayList;
 import java.util.List;
 
-import androidx.annotation.CallSuper;
-import androidx.annotation.Nullable;
-
-public class ListRepository<T> {
+public class ListRepository<T> implements BaseDataSource {
 
     private List<T> mCachedDataList;
 
@@ -14,13 +11,14 @@ public class ListRepository<T> {
         this.mCachedDataList = new ArrayList<>();
     }
 
-    protected void initCachedDataList(List<T> list) {
+    protected List<T> getInitializedCachedDataList(List<T> list) {
         mCachedDataList.clear();
-        addListToCachedDataList(list);
+        return getAddedCachedDataList(list);
     }
 
-    protected void addListToCachedDataList(List<T> list) {
+    protected List<T> getAddedCachedDataList(List<T> list) {
         mCachedDataList.addAll(list);
+        return mCachedDataList;
     }
 
     protected List<T> getCachedList() {
