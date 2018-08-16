@@ -18,13 +18,14 @@ public class ListRepository<T> implements BaseDataSource {
 
     protected List<T> getAddedCachedDataList(List<T> list) {
         mCachedDataList.addAll(list);
-        return mCachedDataList;
+        return getCachedList();
     }
 
     protected List<T> getCachedList() {
         return mCachedDataList == null ? null : new ArrayList<>(mCachedDataList);
     }
 
+    // FIXME: 2018-08-16 getCachedList method 와 혼선이 없도록 수정작업이 필요
     protected List<T> getCachedDataList() {
         return mCachedDataList;
     }
