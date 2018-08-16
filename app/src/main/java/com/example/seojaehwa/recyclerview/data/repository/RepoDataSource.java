@@ -68,7 +68,7 @@ public class RepoDataSource implements IRepoDataSource {
                         return;
                     }
 
-                    // FIXME: nextKey 를 가져오는 방법은 케이스마다 다를것이며 더이상 받을 데이터가 없다면 null 로 세팅
+                    // nextKey 를 가져오는 방법은 케이스마다 다를것이며 더이상 받을 데이터가 없다면 null 로 세팅
                     Integer nextKey = getNextKey() == null ? null : (getNextKey() + 1);
                     setNextKey(nextKey);
 
@@ -98,7 +98,7 @@ public class RepoDataSource implements IRepoDataSource {
             return;
         }
         if (isRequestInProgress) {
-            Logger.w("[WARNING] Still in progress ---------------------------");
+            Logger.e("[WARNING] Still in progress ---------------------------");
             return;
         }
         Logger.i("[loadMoreBoards] nextKey: " + getNextKey());
@@ -118,8 +118,8 @@ public class RepoDataSource implements IRepoDataSource {
                     }
 
                     Integer nextKey = getNextKey() == null ? null : (getNextKey() + 1);
-                    // 10 페이지 호출하면 stop to call!
-                    if (nextKey != null && nextKey == 10) {
+                    // 5 페이지 호출하면 stop to call!
+                    if (nextKey != null && nextKey >= 5) {
                         Logger.e("Stop to load data!! " + nextKey);
                         nextKey = null;
                     }

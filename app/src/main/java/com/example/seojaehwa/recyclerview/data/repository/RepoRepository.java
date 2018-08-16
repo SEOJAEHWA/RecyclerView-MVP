@@ -17,7 +17,7 @@ import androidx.core.util.Pair;
 
 public final class RepoRepository extends ListRepository<Repo> {
 
-    private static final int NETWORK_PAGE_SIZE = 10;
+    private static final int NETWORK_PAGE_SIZE = 20;
     private static final String IN_QUALIFIER = "in:name,description";
 
     private static RepoRepository INSTANCE;
@@ -46,8 +46,8 @@ public final class RepoRepository extends ListRepository<Repo> {
     }
 
     public void getRepos(String queryString, @NonNull BaseDataSource.LoadData<List<Repo>> callback) {
-        mCurrentQueryString = queryString;
         final String apiQuery = queryString + IN_QUALIFIER;
+        mCurrentQueryString = apiQuery;
         mDataSource.getRepos(getApi(), apiQuery, NETWORK_PAGE_SIZE,
                 new SimpleDataSource.LoadData<List<Repo>>() {
                     @Override
@@ -77,6 +77,10 @@ public final class RepoRepository extends ListRepository<Repo> {
                         callback.onNetworkState(state);
                     }
                 });
+    }
+
+    public void refreshRepos(@NonNull BaseDataSource.LoadData<List<Repo>> callback) {
+        getRepos(mCurrentQueryString, callback);
     }
 
     public void restoreRepo(@NonNull BaseDataSource.LoadData<List<Repo>> callback) {

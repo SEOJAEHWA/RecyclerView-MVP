@@ -3,6 +3,7 @@ package com.example.seojaehwa.recyclerview;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.animation.AccelerateDecelerateInterpolator;
 
 import com.example.seojaehwa.recyclerview.adapter.RepoListAdapter;
 import com.example.seojaehwa.recyclerview.api.NetworkState;
@@ -23,6 +24,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import jp.wasabeef.recyclerview.animators.SlideInUpAnimator;
 
 public class MainActivity extends AppCompatActivity implements RepoListContract.View {
 
@@ -30,6 +33,8 @@ public class MainActivity extends AppCompatActivity implements RepoListContract.
 
     private RecyclerView mRecyclerView;
     private RepoListAdapter mAdapter;
+
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,14 +54,21 @@ public class MainActivity extends AppCompatActivity implements RepoListContract.
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        mSwipeRefreshLayout = findViewById(R.id.swipe_refresh);
+        mSwipeRefreshLayout.setOnRefreshListener(() -> {
+            Logger.d("Do swiping!!!");
+            // FIXME: 2018-08-16 뷰를 일단 지워냄?
+//            clearBoardListView();
+            mPresenter.refreshRepos();
+        });
         mRecyclerView = findViewById(R.id.recyclerView);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this,
                 DividerItemDecoration.VERTICAL));
 //        mRecyclerView.setItemAnimator(new SlideInUpAnimator(new AccelerateDecelerateInterpolator()));
 //        if (mRecyclerView.getItemAnimator() != null) {
-//            mRecyclerView.getItemAnimator().setAddDuration(500);
-//            mRecyclerView.getItemAnimator().setRemoveDuration(500);
+//            mRecyclerView.getItemAnimator().setAddDuration(200);
+//            mRecyclerView.getItemAnimator().setRemoveDuration(200);
 //        }
 
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -100,6 +112,16 @@ public class MainActivity extends AppCompatActivity implements RepoListContract.
     @Override
     public void setNetworkState(@Nullable NetworkState state) {
 
+    }
+
+    @Override
+    public void setRefreshState(@Nullable NetworkState state) {
+        if (state != NetworkState.LOADING) {
+//            scrollListToTop();
+            if (mSwipeRefreshLayout.isRefreshing()) {
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+        }
     }
 
     @Override

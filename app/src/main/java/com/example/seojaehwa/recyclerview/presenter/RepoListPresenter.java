@@ -28,6 +28,7 @@ public class RepoListPresenter implements RepoListContract.Presenter {
 
     @Override
     public void searchRepo(String queryString) {
+//        mAdapterModel.submitRepoList(null);
         mRepository.getRepos(queryString, new SimpleDataSource.LoadData<List<Repo>>() {
             @Override
             public void onDataLoaded(List<Repo> data) {
@@ -58,6 +59,22 @@ public class RepoListPresenter implements RepoListContract.Presenter {
                 }
             });
         }
+    }
+
+    @Override
+    public void refreshRepos() {
+//        mAdapterModel.submitRepoList(null);
+        mRepository.refreshRepos(new SimpleDataSource.LoadData<List<Repo>>() {
+            @Override
+            public void onDataLoaded(List<Repo> data) {
+                mAdapterModel.submitRepoList(data);
+            }
+
+            @Override
+            public void onNetworkState(@Nullable NetworkState state) {
+                mView.setRefreshState(state);
+            }
+        });
     }
 
     @Override

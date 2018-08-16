@@ -103,6 +103,7 @@ public class RepoListAdapter extends ListAdapter<Repo, RecyclerView.ViewHolder>
             mNetworkState = state;
             boolean hasProgressRow = hasProgressRow();
             if (hadProgressRow != hasProgressRow) {
+                Logger.d("##### getItemCount: " + RepoListAdapter.super.getItemCount());
                 if (hadProgressRow) {
                     notifyItemRemoved(RepoListAdapter.super.getItemCount());
                 } else {

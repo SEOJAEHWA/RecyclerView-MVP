@@ -13,6 +13,8 @@ public interface RepoListContract {
         void setPresenter(RepoListPresenter presenter);
 
         void setNetworkState(@Nullable NetworkState state);
+
+        void setRefreshState(@Nullable NetworkState state);
     }
 
     interface Presenter {
@@ -28,5 +30,7 @@ public interface RepoListContract {
         void removeRepo(int position);
 
         void restoreRepo();
+
+        void refreshRepos();
     }
 }
