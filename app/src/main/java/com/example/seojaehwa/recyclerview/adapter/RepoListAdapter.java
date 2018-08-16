@@ -93,6 +93,10 @@ public class RepoListAdapter extends ListAdapter<Repo, RecyclerView.ViewHolder>
     @Override
     public void setNetworkState(@Nullable NetworkState state) {
         Logger.w("[Adapter::setNetworkState] " + state);
+        // Cannot call this method in a scroll callback.
+        // Scroll callbacks might be run during a measure & layout pass where you cannot change the RecyclerView data.
+        // https://stackoverflow.com/questions/39445330/cannot-call-notifyiteminserted-from-recyclerview-onscrolllistener
+        // Cause, need delay time.
         mCurrentRecyclerView.post(() -> {
             NetworkState previousState = mNetworkState;
             boolean hadProgressRow = hasProgressRow();

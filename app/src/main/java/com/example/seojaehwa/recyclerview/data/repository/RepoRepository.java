@@ -26,6 +26,8 @@ public final class RepoRepository extends ListRepository<Repo> {
 
     private String mCurrentQueryString;
 
+    private List<Pair<Integer, Repo>> mRestoreDataList;
+
     public static RepoRepository getInstance(IRepoDataSource dataSource) {
         if (INSTANCE == null) {
             INSTANCE = new RepoRepository(dataSource);
@@ -76,8 +78,6 @@ public final class RepoRepository extends ListRepository<Repo> {
                     }
                 });
     }
-
-    private List<Pair<Integer, Repo>> mRestoreDataList;
 
     public void restoreRepo(@NonNull BaseDataSource.LoadData<List<Repo>> callback) {
         for (Pair<Integer, Repo> item : mRestoreDataList) {
