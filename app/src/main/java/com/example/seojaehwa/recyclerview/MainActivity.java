@@ -3,9 +3,10 @@ package com.example.seojaehwa.recyclerview;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 
 import com.example.seojaehwa.recyclerview.adapter.RepoListAdapter;
+import com.example.seojaehwa.recyclerview.api.NetworkState;
 import com.example.seojaehwa.recyclerview.data.repository.RepoDataSource;
 import com.example.seojaehwa.recyclerview.data.repository.RepoRepository;
 import com.example.seojaehwa.recyclerview.presenter.RepoListContract;
@@ -16,11 +17,15 @@ import com.orhanobut.logger.AndroidLogAdapter;
 import com.orhanobut.logger.Logger;
 import com.orhanobut.logger.PrettyFormatStrategy;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import jp.wasabeef.recyclerview.animators.SlideInUpAnimator;
 
 public class MainActivity extends AppCompatActivity implements RepoListContract.View {
 
@@ -28,6 +33,8 @@ public class MainActivity extends AppCompatActivity implements RepoListContract.
 
     private RecyclerView mRecyclerView;
     private RepoListAdapter mAdapter;
+
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,32 +54,74 @@ public class MainActivity extends AppCompatActivity implements RepoListContract.
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        mSwipeRefreshLayout = findViewById(R.id.swipe_refresh);
+        mSwipeRefreshLayout.setOnRefreshListener(() -> {
+            Logger.d("Do swiping!!!");
+            // FIXME: 2018-08-16 뷰를 일단 지워냄?
+//            clearBoardListView();
+            mPresenter.refreshRepos();
+        });
         mRecyclerView = findViewById(R.id.recyclerView);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this,
                 DividerItemDecoration.VERTICAL));
-        mAdapter = new RepoListAdapter();
-        mRecyclerView.setAdapter(mAdapter);
+//        mRecyclerView.setItemAnimator(new SlideInUpAnimator(new AccelerateDecelerateInterpolator()));
+//        if (mRecyclerView.getItemAnimator() != null) {
+//            mRecyclerView.getItemAnimator().setAddDuration(200);
+//            mRecyclerView.getItemAnimator().setRemoveDuration(200);
+//        }
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        fab.setOnClickListener(view ->
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+                        .setAction("Action", null).show());
 
         RepoRepository repository = RepoRepository.getInstance(RepoDataSource.INSTANCE);
         mPresenter = new RepoListPresenter(this, repository);
+
+        mAdapter = new RepoListAdapter();
         mPresenter.setAdapterView(mAdapter);
         mPresenter.setAdapterModel(mAdapter);
+
+        mRecyclerView.setAdapter(mAdapter);
+        RecyclerView.LayoutManager layoutManager = mRecyclerView.getLayoutManager();
+        if (layoutManager instanceof LinearLayoutManager) {
+            final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) layoutManager;
+            mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+                @Override
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    int visibleItemCount = linearLayoutManager.getChildCount();
+                    int lastVisibleItemPosition = linearLayoutManager.findLastVisibleItemPosition();
+                    int totalItemCount = linearLayoutManager.getItemCount();
+                    mPresenter.searchRepoMore(visibleItemCount, lastVisibleItemPosition,
+                            totalItemCount);
+                }
+            });
+        }
+
+        // Request Repo data for initializing!
         mPresenter.searchRepo("Android");
     }
 
     @Override
     public void setPresenter(RepoListPresenter presenter) {
         this.mPresenter = presenter;
+    }
+
+    @Override
+    public void setNetworkState(@Nullable NetworkState state) {
+
+    }
+
+    @Override
+    public void setRefreshState(@Nullable NetworkState state) {
+        if (state != NetworkState.LOADING) {
+//            scrollListToTop();
+            if (mSwipeRefreshLayout.isRefreshing()) {
+                mSwipeRefreshLayout.setRefreshing(false);
+            }
+        }
     }
 
     @Override
@@ -90,8 +139,15 @@ public class MainActivity extends AppCompatActivity implements RepoListContract.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id) {
+            case R.id.action_restore_item:
+                mPresenter.restoreRepo();
+                return true;
+            case R.id.action_remove_item:
+                mPresenter.removeRepo(1);
+                return true;
+            case R.id.action_settings:
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
